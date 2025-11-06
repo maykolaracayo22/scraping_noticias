@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import func, and_, or_
 from typing import List, Optional
 from datetime import date, datetime
 import logging
 
-from . import models, schemas
+from app import models, schemas
 
 logger = logging.getLogger(__name__)
 
@@ -66,29 +66,45 @@ class CRUDNoticias:
     
     def obtener_estadisticas(self, db: Session) -> dict:
         """Obtiene estadísticas de las noticias en la base de datos"""
-        total_noticias = db.query(models.Noticia).count()
-        
-        # Contar por categoría
-        categorias_count = db.query(
-            models.Noticia.categoria, 
-            db.func.count(models.Noticia.id)
-        ).group_by(models.Noticia.categoria).all()
-        
-        # Contar por fuente
-        fuentes_count = db.query(
-            models.Noticia.fuente, 
-            db.func.count(models.Noticia.id)
-        ).group_by(models.Noticia.fuente).all()
-        
-        # Noticia más reciente
-        noticia_reciente = db.query(models.Noticia).order_by(models.Noticia.fecha.desc()).first()
-        
-        return {
-            'total_noticias': total_noticias,
-            'categorias': dict(categorias_count),
-            'fuentes': dict(fuentes_count),
-            'ultima_actualizacion': noticia_reciente.fecha_creacion if noticia_reciente else None
-        }
+        try:
+            # Total de noticias
+            total_noticias = db.query(models.Noticia).count()
+            
+            # Contar por categoría - CORREGIDO
+            categorias_count_result = db.query(
+                models.Noticia.categoria, 
+                func.count(models.Noticia.id)  # ✅ CORREGIDO: func.count en lugar de db.func.count
+            ).group_by(models.Noticia.categoria).all()
+            
+            categorias_count = {categoria: count for categoria, count in categorias_count_result}
+            
+            # Contar por fuente - CORREGIDO
+            fuentes_count_result = db.query(
+                models.Noticia.fuente, 
+                func.count(models.Noticia.id)  # ✅ CORREGIDO: func.count en lugar de db.func.count
+            ).group_by(models.Noticia.fuente).all()
+            
+            fuentes_count = {fuente: count for fuente, count in fuentes_count_result}
+            
+            # Noticia más reciente
+            noticia_reciente = db.query(models.Noticia).order_by(models.Noticia.fecha_creacion.desc()).first()
+            
+            return {
+                'total_noticias': total_noticias,
+                'categorias': categorias_count,
+                'fuentes': fuentes_count,
+                'ultima_actualizacion': noticia_reciente.fecha_creacion if noticia_reciente else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas: {e}")
+            # Retornar datos vacíos en caso de error
+            return {
+                'total_noticias': 0,
+                'categorias': {},
+                'fuentes': {},
+                'ultima_actualizacion': None
+            }
     
     def buscar_noticias(self, db: Session, query: str, skip: int = 0, limit: int = 100) -> List[models.Noticia]:
         """Busca noticias por texto en título o contenido"""

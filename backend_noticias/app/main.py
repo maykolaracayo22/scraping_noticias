@@ -179,14 +179,18 @@ def listar_categorias():
     categorias.append("General")
     return {"categorias": categorias}
 
-# Manejo de errores global
+# Manejo de errores global - CORREGIDO
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"Error no manejado: {exc}")
-    return {
-        "mensaje": "Error interno del servidor",
-        "detalles": str(exc)
-    }
+    from fastapi.responses import JSONResponse  # ✅ Añadir este import
+    return JSONResponse(
+        status_code=500,
+        content={
+            "mensaje": "Error interno del servidor",
+            "detalles": str(exc)
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn
