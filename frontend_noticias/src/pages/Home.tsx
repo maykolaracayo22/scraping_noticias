@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type{ Noticia, ScrapingResponse } from '../types';
+import type { Noticia, ScrapingResponse } from '../types';
 import { newsApi } from '../api/newsApi';
 import NewsList from '../components/NewsList';
 import CategoryFilter from '../components/CategoryFilter';
@@ -41,7 +41,17 @@ const Home: React.FC<HomeProps> = ({ onNoticiaClick, searchQuery }) => {
         newsApi.getFuentes()
       ]);
       setCategorias(categoriasData.categorias);
-      setFuentes(fuentesData.fuentes);
+      
+      // Normalizar las fuentes para que sean consistentes
+      const fuentesNormalizadas = fuentesData.fuentes.map(fuente => {
+        return fuente
+          .replace('_', ' ')
+          .split(' ')
+          .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+          .join(' ');
+      });
+      
+      setFuentes(fuentesNormalizadas);
     } catch (error) {
       console.error('Error cargando datos iniciales:', error);
     }
@@ -55,8 +65,11 @@ const Home: React.FC<HomeProps> = ({ onNoticiaClick, searchQuery }) => {
 
       if (categoriaSeleccionada) {
         data = await newsApi.getNoticiasPorCategoria(categoriaSeleccionada, skip, noticiasPorPagina);
+      } else if (fuenteSeleccionada) {
+        // Para el filtro por fuente, usar el endpoint de noticias con parámetro fuente
+        data = await newsApi.getNoticias(skip, noticiasPorPagina, fuenteSeleccionada);
       } else {
-        data = await newsApi.getNoticias(skip, noticiasPorPagina, fuenteSeleccionada || undefined);
+        data = await newsApi.getNoticias(skip, noticiasPorPagina);
       }
       
       setNoticias(data);
@@ -131,6 +144,7 @@ const Home: React.FC<HomeProps> = ({ onNoticiaClick, searchQuery }) => {
                 categoriaSeleccionada={categoriaSeleccionada}
                 onCategoriaChange={(categoria) => {
                   setCategoriaSeleccionada(categoria);
+                  setFuenteSeleccionada(''); // Resetear fuente cuando se selecciona categoría
                   setPaginaActual(0);
                 }}
               />
@@ -143,6 +157,7 @@ const Home: React.FC<HomeProps> = ({ onNoticiaClick, searchQuery }) => {
                 fuenteSeleccionada={fuenteSeleccionada}
                 onFuenteChange={(fuente) => {
                   setFuenteSeleccionada(fuente);
+                  setCategoriaSeleccionada(''); // Resetear categoría cuando se selecciona fuente
                   setPaginaActual(0);
                 }}
               />

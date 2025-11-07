@@ -11,6 +11,21 @@ const SourceFilter: React.FC<SourceFilterProps> = ({
   fuenteSeleccionada,
   onFuenteChange
 }) => {
+  // Asegurarnos de que las fuentes sean consistentes con el backend
+  const fuentesNormalizadas = fuentes.map(fuente => {
+    // Normalizar los nombres para que coincidan con lo que viene del backend
+    const normalizada = fuente
+      .replace('_', ' ') // Reemplazar guiones bajos por espacios
+      .split(' ') // Separar por espacios
+      .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()) // Capitalizar cada palabra
+      .join(' ');
+    
+    return normalizada;
+  });
+
+  // Eliminar duplicados después de normalizar
+  const fuentesUnicas = Array.from(new Set(fuentesNormalizadas));
+
   return (
     <div className="flex flex-wrap gap-2 mb-4">
       <button
@@ -23,7 +38,7 @@ const SourceFilter: React.FC<SourceFilterProps> = ({
       >
         Todas
       </button>
-      {fuentes.map((fuente) => (
+      {fuentesUnicas.map((fuente) => (
         <button
           key={fuente}
           onClick={() => onFuenteChange(fuente)}
