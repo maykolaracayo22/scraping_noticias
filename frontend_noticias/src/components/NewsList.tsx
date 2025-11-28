@@ -1,5 +1,5 @@
 import React from 'react';
-import type{ Noticia } from '../types';
+import type { Noticia } from '../types';
 import NewsCard from './NewsCard';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -7,9 +7,17 @@ interface NewsListProps {
   noticias: Noticia[];
   loading: boolean;
   onNoticiaClick: (noticia: Noticia) => void;
+  onReport?: (noticiaId: number, motivo: string) => void;
+  userPlan?: string; // ← Nueva prop
 }
 
-const NewsList: React.FC<NewsListProps> = ({ noticias, loading, onNoticiaClick }) => {
+const NewsList: React.FC<NewsListProps> = ({ 
+  noticias, 
+  loading, 
+  onNoticiaClick,
+  onReport,
+  userPlan = 'free'  // ← Recibir y pasar la prop
+}) => {
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -29,6 +37,8 @@ const NewsList: React.FC<NewsListProps> = ({ noticias, loading, onNoticiaClick }
           key={noticia.id} 
           noticia={noticia} 
           onClick={onNoticiaClick}
+          onReport={onReport}
+          userPlan={userPlan}  // ← Pasar la prop al NewsCard
         />
       ))}
     </div>

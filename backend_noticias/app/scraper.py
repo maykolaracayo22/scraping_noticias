@@ -15,11 +15,332 @@ from app.classification import clasificador
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class RedditScraper:
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+        })
+    
+    def scrape_reddit(self) -> List[Dict]:
+        """Scraper principal para Reddit"""
+        noticias = []
+        
+        logger.info(f"🔍 Iniciando scraping de Reddit en {len(settings.REDDIT_SUBREDDITS)} subreddits")
+        
+        for subreddit_name in settings.REDDIT_SUBREDDITS:
+            try:
+                logger.info(f"📰 Scrapeando r/{subreddit_name}...")
+                posts_subreddit = self._scrape_subreddit(subreddit_name)
+                noticias.extend(posts_subreddit)
+                logger.info(f"✅ r/{subreddit_name}: {len(posts_subreddit)} posts obtenidos")
+                
+                time.sleep(settings.REDDIT_WEB_DELAY * 2)  # Pausa entre subreddits
+                
+            except Exception as e:
+                logger.error(f"❌ Error en r/{subreddit_name}: {e}")
+                continue
+        
+        logger.info(f"🎯 Reddit scraping completado: {len(noticias)} posts totales")
+        return noticias
+    
+    def _scrape_subreddit(self, subreddit: str) -> List[Dict]:
+        """Scrapea un subreddit específico con mejor logging"""
+        posts = []
+        
+        try:
+            url = f"https://www.reddit.com/r/{subreddit}/{settings.REDDIT_SORT}/"
+            logger.info(f"🌐 Accediendo a Reddit: {url}")
+            
+            response = self.session.get(url, timeout=settings.REQUEST_TIMEOUT)
+            response.raise_for_status()
+            logger.info(f"✅ Respuesta HTTP: {response.status_code}")
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # DEBUG: Guardar HTML para análisis
+            with open(f"debug_reddit_{subreddit}.html", "w", encoding="utf-8") as f:
+                f.write(soup.prettify())
+            logger.info(f"💾 HTML guardado en debug_reddit_{subreddit}.html")
+            
+            # Múltiples estrategias para encontrar posts
+            post_selectors = [
+                'shreddit-post',
+                '[data-testid="post-container"]',
+                'div[class*="post"]',
+                'article',
+            ]
+            
+            post_elements = []
+            for selector in post_selectors:
+                found = soup.select(selector)
+                logger.info(f"🔍 Selector '{selector}': {len(found)} elementos")
+                if found:
+                    post_elements = found
+                    logger.info(f"🎯 Usando selector: {selector}")
+                    break
+            
+            # Si no encontramos con selectores, buscar por estructura
+            if not post_elements:
+                logger.info("🔄 Intentando búsqueda alternativa por enlaces...")
+                possible_posts = soup.find_all('a', href=re.compile(r'/r/.*/comments/'))
+                logger.info(f"🔗 Enlaces de posts encontrados: {len(possible_posts)}")
+                post_elements = [post.parent for post in possible_posts[:settings.REDDIT_LIMIT] if post.parent]
+                logger.info(f"🔄 Posts alternativos: {len(post_elements)}")
+            
+            logger.info(f"📝 Procesando {len(post_elements)} elementos de post")
+            
+            for i, post_element in enumerate(post_elements[:settings.REDDIT_LIMIT]):
+                try:
+                    logger.debug(f"📄 Procesando post {i+1}/{len(post_elements)}")
+                    post_data = self._extraer_datos_post(post_element, subreddit)
+                    if post_data and post_data['titulo']:
+                        posts.append(post_data)
+                        logger.info(f"✅ Post {i+1}: '{post_data['titulo'][:30]}...'")
+                    else:
+                        logger.debug(f"❌ Post {i+1} descartado")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error en post {i+1}: {e}")
+                    continue
+                
+                time.sleep(settings.REDDIT_WEB_DELAY)
+            
+        except Exception as e:
+            logger.error(f"❌ Error scrapeando r/{subreddit}: {e}")
+        
+        logger.info(f"📊 r/{subreddit}: {len(posts)} posts extraídos")
+        return posts
+    
+    def _extraer_datos_post(self, post_element, subreddit: str) -> Optional[Dict]:
+        """Extrae datos de un post individual de Reddit"""
+        try:
+            # 1. Título
+            titulo = self._extraer_titulo(post_element)
+            if not titulo:
+                return None
+            
+            # 2. Enlace
+            enlace = self._extraer_enlace(post_element)
+            if not enlace:
+                return None
+            
+            enlace = self._truncar_url(enlace, settings.MAX_URL_LENGTH)
+            
+            # 3. Contenido
+            contenido = self._extraer_contenido(post_element, titulo, subreddit)
+            
+            # 4. Imagen
+            imagen_url = self._extraer_imagen(post_element)
+            if imagen_url:
+                imagen_url = self._truncar_url(imagen_url, settings.MAX_URL_LENGTH)
+            
+            # 5. Clasificación
+            categoria = self._clasificar_post_reddit(titulo, contenido, subreddit)
+            
+            return {
+                'titulo': titulo,
+                'enlace': enlace,
+                'fecha': date.today(),  # Reddit no muestra fecha fácilmente en listado
+                'contenido': contenido[:settings.MAX_CONTENT_LENGTH],
+                'imagen_url': imagen_url,
+                'fuente': 'Reddit',
+                'categoria': categoria,
+                'subreddit': subreddit
+            }
+            
+        except Exception as e:
+            logger.warning(f"⚠️ Error extrayendo datos del post: {e}")
+            return None
+    
+    def _extraer_titulo(self, post_element) -> Optional[str]:
+        """Extrae el título del post"""
+        titulo_selectors = [
+            'h3',
+            '[slot="title"]',
+            '[class*="title"]',
+            '[class*="post-title"]',
+            'a[href*="/comments/"]'
+        ]
+        
+        for selector in titulo_selectors:
+            element = post_element.select_one(selector)
+            if element and element.get_text().strip():
+                titulo = element.get_text().strip()
+                # Filtrar títulos muy cortos o que no parecen títulos
+                if len(titulo) > 10 and len(titulo) < 300:
+                    return titulo
+        
+        return None
+    
+    def _extraer_enlace(self, post_element) -> Optional[str]:
+        """Extrae el enlace del post"""
+        # Buscar enlaces que contengan la estructura de posts de Reddit
+        enlace_elements = post_element.find_all('a', href=re.compile(r'/r/.*/comments/'))
+        
+        for element in enlace_elements:
+            href = element.get('href')
+            if href:
+                if href.startswith('/'):
+                    return f"https://www.reddit.com{href}"
+                else:
+                    return href
+        
+        return None
+    
+    def _extraer_contenido(self, post_element, titulo: str, subreddit: str) -> str:
+        """Extrae el contenido del post"""
+        contenido_selectors = [
+            '[class*="content"]',
+            '[class*="text"]',
+            '[class*="body"]',
+            'p',
+            'div'
+        ]
+        
+        for selector in contenido_selectors:
+            element = post_element.select_one(selector)
+            if element and element.get_text().strip():
+                contenido = element.get_text().strip()
+                if len(contenido) > 50:  # Contenido significativo
+                    return contenido
+        
+        # Si no encontramos contenido, crear uno basado en el título y subreddit
+        return f"Post en r/{subreddit}: {titulo}"
+    
+    def _extraer_imagen(self, post_element) -> Optional[str]:
+        """Extrae la imagen del post"""
+        img_selectors = [
+            'img',
+            '[class*="image"]',
+            '[class*="media"]',
+            '[class*="thumb"]'
+        ]
+        
+        for selector in img_selectors:
+            img_elements = post_element.select(selector)
+            for img in img_elements:
+                src = img.get('src') or img.get('data-src')
+                if src and self._es_imagen_valida(src):
+                    if src.startswith('//'):
+                        return f"https:{src}"
+                    elif src.startswith('/'):
+                        return f"https://www.reddit.com{src}"
+                    else:
+                        return src
+        
+        return None
+    
+    def _es_imagen_valida(self, url: str) -> bool:
+        """Verifica si la URL es una imagen válida"""
+        if not url:
+            return False
+        
+        # Excluir placeholders y icons
+        invalid_patterns = ['placeholder', 'icon', 'logo', 'spacer', 'pixel']
+        if any(pattern in url.lower() for pattern in invalid_patterns):
+            return False
+        
+        # Verificar extensiones de imagen
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+        return any(ext in url.lower() for ext in valid_extensions)
+    
+    def _clasificar_post_reddit(self, titulo: str, contenido: str, subreddit: str) -> str:
+        """Clasifica posts de Reddit en categorías"""
+        # Mapeo directo de subreddits a categorías
+        subreddit_mapping = {
+            'worldnews': 'Internacional',
+            'news': 'General', 
+            'technology': 'Tecnología',
+            'science': 'Tecnología',
+            'politics': 'Política',
+            'economics': 'Economía',
+            'sports': 'Deportes',
+            'health': 'Salud',
+            'programming': 'Tecnología',
+            'MachineLearning': 'Tecnología'
+        }
+        
+        # Primero intentar por subreddit
+        if subreddit in subreddit_mapping:
+            return subreddit_mapping[subreddit]
+        
+        # Si no, usar el clasificador existente
+        return clasificador.clasificar_noticia(titulo, contenido, f"reddit.com/r/{subreddit}")
+    
+    def _truncar_url(self, url: str, max_length: int = 500) -> str:
+        """Trunca la URL si es demasiado larga"""
+        if len(url) > max_length:
+            truncated = url[:max_length-3] + "..."
+            logger.warning(f"📏 URL truncada de {len(url)} a {len(truncated)} caracteres")
+            return truncated
+        return url
+
+
 class ScraperNoticias:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update(settings.HEADERS)
-    
+        self.reddit_scraper = RedditScraper()  # ✅ NUEVO
+
+    def scrape_reddit(self) -> List[Dict]:
+        """Scraper para Reddit con mejor logging"""
+        logger.info("🚀 Iniciando scraper de Reddit...")
+        try:
+            noticias = self.reddit_scraper.scrape_reddit()
+            logger.info(f"🎯 Scraper de Reddit completado: {len(noticias)} posts")
+            return noticias
+        except Exception as e:
+            logger.error(f"💥 Error crítico en scrape_reddit: {e}")
+            return []
+        
+    def ejecutar_scraping_completo(self) -> List[Dict]:
+        """Ejecuta scraping de todas las fuentes incluyendo Reddit"""
+        todas_noticias = []
+        
+        # Scraping de periódicos (existente)
+        logger.info("📰 Iniciando scraping de periódicos...")
+        noticias_rpp = self.scrape_rpp()
+        todas_noticias.extend(noticias_rpp)
+        logger.info(f"✅ RPP: {len(noticias_rpp)} noticias")
+        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
+        
+        noticias_trome = self.scrape_trome()
+        todas_noticias.extend(noticias_trome)
+        logger.info(f"✅ Trome: {len(noticias_trome)} noticias")
+        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
+        
+        noticias_el_comercio = self.scrape_el_comercio()
+        todas_noticias.extend(noticias_el_comercio)
+        logger.info(f"✅ El Comercio: {len(noticias_el_comercio)} noticias")
+        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
+        
+        noticias_dsf = self.scrape_diario_sin_fronteras()
+        todas_noticias.extend(noticias_dsf)
+        logger.info(f"✅ Diario Sin Fronteras: {len(noticias_dsf)} noticias")
+        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
+        
+        # ✅ NUEVO: Scraping de Reddit - ESTA PARTE FALTA EN TU CÓDIGO
+        logger.info("🔄 Iniciando scraping de Reddit...")
+        try:
+            noticias_reddit = self.scrape_reddit()
+            todas_noticias.extend(noticias_reddit)
+            logger.info(f"✅ Reddit: {len(noticias_reddit)} posts")
+        except Exception as e:
+            logger.error(f"❌ Error en scraping de Reddit: {e}")
+            noticias_reddit = []
+        
+        # Resumen final
+        logger.info("🎊 SCRAPING COMPLETADO")
+        logger.info(f"📊 TOTAL: {len(todas_noticias)} elementos")
+        logger.info(f"🔍 Resumen: RPP({len(noticias_rpp)}), Trome({len(noticias_trome)}), "
+                f"El Comercio({len(noticias_el_comercio)}), DSF({len(noticias_dsf)}), "
+                f"Reddit({len(noticias_reddit)})")
+        
+        return todas_noticias
+
     def _truncar_url(self, url: str, max_length: int = 500) -> str:
         """Trunca la URL si es demasiado larga para MySQL"""
         if len(url) > max_length:
@@ -690,38 +1011,6 @@ class ScraperNoticias:
             'categoria': categoria
         }
 
-    def ejecutar_scraping_completo(self) -> List[Dict]:
-        """Ejecuta scraping de todas las fuentes"""
-        todas_noticias = []
-        
-        logger.info("Iniciando scraping de RPP...")
-        noticias_rpp = self.scrape_rpp()
-        todas_noticias.extend(noticias_rpp)
-        logger.info(f"RPP: {len(noticias_rpp)} noticias obtenidas")
-        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
-        
-        logger.info("Iniciando scraping de Trome...")
-        noticias_trome = self.scrape_trome()
-        todas_noticias.extend(noticias_trome)
-        logger.info(f"Trome: {len(noticias_trome)} noticias obtenidas")
-        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
-        
-        logger.info("Iniciando scraping de El Comercio...")
-        noticias_el_comercio = self.scrape_el_comercio()
-        todas_noticias.extend(noticias_el_comercio)
-        logger.info(f"El Comercio: {len(noticias_el_comercio)} noticias obtenidas")
-        time.sleep(settings.DELAY_BETWEEN_REQUESTS)
-        
-        logger.info("Iniciando scraping de Diario Sin Fronteras...")
-        noticias_dsf = self.scrape_diario_sin_fronteras()
-        todas_noticias.extend(noticias_dsf)
-        logger.info(f"Diario Sin Fronteras: {len(noticias_dsf)} noticias obtenidas")
-        
-        # Resumen final
-        logger.info(f"Scraping completado. Total de noticias obtenidas: {len(todas_noticias)}")
-        logger.info(f"Resumen por fuente: RPP({len(noticias_rpp)}), Trome({len(noticias_trome)}), El Comercio({len(noticias_el_comercio)}), DSF({len(noticias_dsf)})")
-        
-        return todas_noticias
 
 # Instancia global del scraper
 scraper = ScraperNoticias()

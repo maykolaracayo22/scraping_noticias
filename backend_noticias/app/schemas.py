@@ -39,3 +39,32 @@ class ScrapingResponse(BaseModel):
 class MensajeResponse(BaseModel):
     mensaje: str
     detalles: Optional[Dict[str, Any]] = None
+
+# Agregar al final de schemas.py
+
+# Schemas para Análisis IA
+class AnalisisIABase(BaseModel):
+    noticia_id: int
+    resumen: str
+    categoria: str
+    sentimiento: str
+    temas_principales: List[str]
+    puntuacion_importancia: int
+    palabras_clave: List[str]
+
+class AnalisisIACreate(AnalisisIABase):
+    pass
+
+class AnalisisIA(AnalisisIABase):
+    id: int
+    fecha_analisis: datetime
+    
+    class Config:
+        from_attributes = True
+
+class AnalisisIARequest(BaseModel):
+    noticia_id: int
+
+class AnalisisIAResponse(BaseModel):
+    analisis: AnalisisIA
+    noticia: Noticia
