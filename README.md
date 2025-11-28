@@ -1,84 +1,80 @@
-📰 News Aggregator – Sistema de Scraping y Gestión de Noticias
-Sistema completo para scraping, gestión y análisis de noticias peruanas, con autenticación de usuarios, planes de servicio, análisis con IA y un panel administrativo completo.
+# 📰 News Aggregator – Sistema de Scraping y Gestión de Noticias
 
-📋 Descripción General
+Sistema completo para **scraping, gestión y análisis de noticias peruanas**, con autenticación de usuarios, planes de servicio, análisis con IA y un panel administrativo completo.
+
+---
+
+## 📋 Descripción General
+
 Este proyecto integra:
 
-Scraping automatizado de múltiples portales de noticias.
-
-API backend con FastAPI + MySQL.
-
-Frontend moderno construido con React + TypeScript.
-
-Modo Usuario y Modo Administrador.
-
-Planes Free y Plus.
-
-ChatBot con IA (Gemini AI).
-
-Exportación a Excel y filtros avanzados.
+- Scraping automatizado de múltiples portales de noticias.
+- API backend con FastAPI + MySQL.
+- Frontend moderno construido con React + TypeScript.
+- Modo Usuario y Modo Administrador.
+- Planes Free y Plus.
+- ChatBot con IA (Gemini AI).
+- Exportación a Excel y filtros avanzados.
 
 Ideal para aplicaciones de monitoreo de noticias, análisis informativo y automatización de recolección de datos.
 
-🚀 Características Principales
-🔧 Funciones Técnicas
-✅ Scraping automático y manual de noticias peruanas
+---
 
-✅ Autenticación JWT con roles (Admin / Usuario)
+## 🚀 Características Principales
 
-✅ Sistema de planes (Free y Plus)
+### 🔧 Funciones Técnicas
+- ✅ Scraping automático y manual de noticias peruanas  
+- ✅ Autenticación JWT con roles (Admin / Usuario)  
+- ✅ Sistema de planes (Free y Plus)  
+- ✅ Análisis de noticias con Google Gemini AI  
+- ✅ ChatBot inteligente integrado  
+- ✅ Exportación a Excel con filtros  
+- ✅ API RESTful documentada (FastAPI Docs)  
+- ✅ Panel administrativo completo  
+- ✅ Frontend responsivo y moderno  
 
-✅ Análisis de noticias con Google Gemini AI
+---
 
-✅ ChatBot inteligente integrado
+# 🛠️ Instalación y Configuración
 
-✅ Exportación a Excel con filtros
+## 📌 Prerrequisitos
 
-✅ API RESTful documentada (FastAPI Docs)
-
-✅ Panel administrativo completo
-
-✅ Frontend responsivo y moderno
-
-🛠️ Instalación y Configuración
-📌 Prerrequisitos
 Asegúrate de tener instalado:
 
-Python 3.10+
+- **Python 3.10+**
+- **Node.js 16+**
+- **MySQL 8.0+**
+- **Git**
 
-Node.js 16+
+---
 
-MySQL 8.0+
+## 📥 1. Clonar el Repositorio
 
-Git
-
-📥 1. Clonar el Repositorio
-bash
+```bash
 git clone https://github.com/maykolaracayo22/scraping_noticias.git
 cd scraping_noticias
 🗄️ 2. Configuración de la Base de Datos (MySQL)
 Crear base de datos manualmente:
-
 sql
+Copiar código
 CREATE DATABASE news_aggregator_reddit;
 O usar el script automático:
-
 bash
+Copiar código
 cd backend_noticias
 python create_database.py
 🔧 3. Configuración del Backend (FastAPI)
-Navegar al directorio del backend:
-
+Navegar al backend:
 bash
+Copiar código
 cd backend_noticias
-Instalar dependencias de Python:
-
+Instalar dependencias:
 bash
+Copiar código
 pip install -r requirements.txt
-Configurar variables de entorno:
-Crear archivo .env en la carpeta backend_noticias:
-
+Crear archivo .env:
 env
+Copiar código
 # Base de Datos MySQL
 DB_HOST=localhost
 DB_PORT=3306
@@ -86,146 +82,160 @@ DB_NAME=news_aggregator_reddit
 DB_USER=tu_usuario_mysql
 DB_PASSWORD=tu_password_mysql
 
-# Google AI (Gemini) - Opcional para análisis IA
-GOOGLE_AI_API_KEY=tu_api_key_de_google_ai
+# Google AI (Gemini)
+GOOGLE_AI_API_KEY=TU_API_KEY_AQUI
 
-# JWT Secret Key
-SECRET_KEY=tu_clave_secreta_muy_segura_aqui
+# JWT
+SECRET_KEY=tu_clave_secreta_muy_segura
 ALGORITHM=HS256
-Ejecutar el backend:
-
+Ejecutar el backend
 bash
+Copiar código
 python main.py
-El backend estará disponible en: http://localhost:8000
+Backend disponible en:
+👉 http://localhost:8000
+👉 Documentación API: http://localhost:8000/docs
 
 🎨 4. Configuración del Frontend (React + TypeScript)
-Abrir nueva terminal y navegar al frontend:
-
+Navegar al frontend:
 bash
+Copiar código
 cd frontend_noticias
-Instalar dependencias de Node.js:
-
+Instalar dependencias:
 bash
+Copiar código
 npm install
-Ejecutar el frontend:
-
+Ejecutar frontend:
 bash
+Copiar código
 npm run dev
-El frontend estará disponible en: http://localhost:5173
+Frontend disponible en:
+👉 http://localhost:5173
 
 👤 5. Credenciales de Acceso
-Usuario Administrador por defecto:
-
-Email: admin@newsperu.com
-
+Administrador (por defecto):
+makefile
+Copiar código
+Email: admin@newsperu.com  
 Password: 123456
+Usuarios Free:
+Se registran desde el sistema
 
-Usuario Free:
+Obtienen automáticamente el plan Free
 
-Registro automático con plan Free
+Pueden actualizar a Plus mediante Yape
 
-Puede actualizar a Plus mediante Yape
+🔑 6. Configuración Opcional – Google Gemini AI
+Para activar el análisis de noticias con IA:
 
-🔑 6. Configuración Opcional - Google AI (Gemini)
-Para habilitar el análisis con IA:
+Obtener tu API Key desde Google AI Studio
 
-Obtener API key de Google AI Studio
-
-Agregar la API key en el archivo .env del backend:
+Añadirla en el archivo .env:
 
 env
-GOOGLE_AI_API_KEY=AIzaSyAqgMpcMmR4_vWJRM5X7mcp2rEtB5YEeZ8
+Copiar código
+GOOGLE_AI_API_KEY=TU_API_KEY_AQUI
 📁 Estructura del Proyecto
-text
+bash
+Copiar código
 scraping_noticias/
 ├── backend_noticias/          # FastAPI Backend
 │   ├── app/
-│   │   ├── models.py         # Modelos de base de datos
-│   │   ├── main.py           # Aplicación principal
-│   │   ├── crud.py           # Operaciones de base de datos
-│   │   └── scraper.py        # Scraping de noticias
-│   ├── requirements.txt      # Dependencias Python
-│   └── .env                 # Variables de entorno
-├── frontend_noticias/        # React Frontend
+│   │   ├── models.py          # Modelos de la BD
+│   │   ├── main.py            # Aplicación principal
+│   │   ├── crud.py            # Operaciones de BD
+│   │   └── scraper.py         # Lógica de scraping
+│   ├── requirements.txt
+│   └── .env
+│
+├── frontend_noticias/         # React Frontend
 │   ├── src/
-│   │   ├── components/      # Componentes React
-│   │   ├── pages/          # Páginas principales
-│   │   ├── types/          # Definiciones TypeScript
-│   │   └── api/            # Cliente API
-│   └── package.json        # Dependencias Node.js
-└── README.md               # Este archivo
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── types/
+│   │   └── api/
+│   └── package.json
+│
+└── README.md
 🎯 Funcionalidades por Plan
 🆓 Plan Free
-✅ Lectura de todas las noticias
+Lectura de todas las noticias
 
-✅ Scraping básico
+Scraping básico
 
-✅ Búsqueda y filtros
+Búsqueda y filtros
 
-✅ Reportar noticias
+Reportar noticias
+
+Registro con correo
 
 ⭐ Plan Plus (S/ 19.90 mensual)
-✅ Todo lo del plan Free
+Incluye todo lo del Free y además:
 
-✅ Análisis con IA de noticias
+Análisis de noticias con IA
 
-✅ ChatBot inteligente
+ChatBot inteligente
 
-✅ Exportación a Excel
+Exportación avanzada a Excel
 
-✅ Scraping avanzado
+Scraping avanzado
+
+Más velocidad y más fuentes
 
 🐛 Solución de Problemas Comunes
-Error de conexión a MySQL:
+❌ Error de conexión a MySQL
+Verifica que MySQL está corriendo
 
-Verificar que MySQL esté ejecutándose
+Confirma usuario y contraseña en .env
 
-Confirmar credenciales en el archivo .env
+Asegura que la BD news_aggregator_reddit existe
 
-Asegurar que la base de datos existe
+❌ Puerto en uso
+Cambiar puerto backend (main.py):
 
-Error de puertos ocupados:
+python
+Copiar código
+uvicorn.run(app, host="0.0.0.0", port=8001)
+Cambiar puerto frontend (vite.config.ts):
 
-Backend: Cambiar puerto en main.py (línea 730)
-
-Frontend: Cambiar puerto en vite.config.ts
-
-Error de dependencias:
-
+ts
+Copiar código
+server: { port: 5174 }
+❌ Error de dependencias
 bash
-# Reinstalar dependencias del backend
+Copiar código
 pip install -r requirements.txt --force-reinstall
 
-# Reinstalar dependencias del frontend
 rm -rf node_modules package-lock.json
 npm install
 🚀 Comandos Rápidos de Despliegue
-Inicio rápido (después de la primera instalación):
-
+Terminal 1 — Backend
 bash
-# Terminal 1 - Backend
-cd backend_noticias && python main.py
-
-# Terminal 2 - Frontend  
-cd frontend_noticias && npm run dev
-¡Listo! El sistema estará funcionando en http://localhost:5173 🎉
+Copiar código
+cd backend_noticias
+python main.py
+Terminal 2 — Frontend
+bash
+Copiar código
+cd frontend_noticias
+npm run dev
+Sistema activo en:
+👉 http://localhost:5173 🎉
 
 📞 Soporte
-Si encuentras problemas durante la instalación:
+Si encuentras problemas:
 
-Revisa que todos los prerrequisitos estén instalados
+Verifica prerrequisitos
 
-Verifica las credenciales de la base de datos
+Confirma que backend y frontend están activos
 
-Asegúrate de que ambos servicios (backend y frontend) estén ejecutándose
+Revisa el archivo .env
+
+Revisa logs de consola
 
 🏁 Estado del Proyecto
-✅ Proyecto funcional
-
-✅ Scraping operativo
-
-✅ Sistema de usuarios completo
-
-✅ IA integrada
-
-✅ Listo para producción y demostraciones
+✔ Proyecto funcional
+✔ Scraping operativo
+✔ Sistema de usuarios completo
+✔ IA integrada
+✔ Listo para producción y demostraciones
