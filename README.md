@@ -1,240 +1,275 @@
-README.md — Manual de Despliegue Oficial
-# 📰 News Aggregator – Sistema de Scraping y Gestión de Noticias
+📘 README COMPLETO – News Aggregator
+📰 News Aggregator – Sistema de Scraping y Gestión de Noticias
 
-Sistema completo para **scraping, gestión y análisis de noticias peruanas**, con autenticación de usuarios, planes de servicio, análisis con IA y un panel administrativo completo.
+Sistema completo para scraping, gestión y análisis de noticias peruanas, con autenticación de usuarios, planes de servicio, análisis con IA y un panel administrativo moderno.
 
----
-
-## 📋 Descripción General
+📋 1. Descripción General
 
 Este proyecto integra:
 
-- Scraping automatizado de múltiples portales de noticias.
-- API backend con FastAPI + MySQL.
-- Frontend moderno construido con React + TypeScript.
-- Modo Usuario y Modo Administrador.
-- Planes Free y Plus.
-- ChatBot con IA (Gemini AI).
-- Exportación a Excel y filtros avanzados.
+🔍 Scraping automatizado y manual de múltiples portales de noticias peruanas
 
-Ideal para aplicaciones de monitoreo de noticias, análisis informativo y automatización de recolección de datos.
+🧠 Análisis de noticias con Inteligencia Artificial (Google Gemini AI)
 
----
+👤 Autenticación con roles (Usuario / Admin)
 
-## 🚀 Características Principales
+📊 Panel administrativo completo
 
-### 🔧 Funciones Técnicas
-- ✅ Scraping automático y manual de noticias peruanas  
-- ✅ Autenticación JWT con roles (Admin / Usuario)  
-- ✅ Sistema de planes (Free y Plus)  
-- ✅ Análisis de noticias con Google Gemini AI  
-- ✅ ChatBot inteligente integrado  
-- ✅ Exportación a Excel con filtros  
-- ✅ API RESTful documentada (FastAPI Docs)  
-- ✅ Panel administrativo completo  
-- ✅ Frontend responsivo y moderno  
+🔐 Sistema de planes Free y Plus
 
----
+🧾 Exportación de datos a Excel
 
-# 🛠️ Instalación y Configuración
+🌐 API RESTful documentada con Swagger
 
-## 📌 Prerrequisitos
+🎨 Frontend moderno en React + TypeScript
 
-Asegúrate de tener instalado:
+Ideal para:
 
-- **Python 3.10+**
-- **Node.js 16+**
-- **MySQL 8.0+**
-- **Git**
+Monitoreo de noticias
 
----
+Empresas de marketing digital
 
-## 📥 1. Clonar el Repositorio
+Prensa
 
-```bash
+Investigación académica
+
+Automatización informativa
+
+⚙️ 2. Tecnologías Usadas
+Backend
+
+FastAPI
+
+Python 3.10+
+
+MySQL 8.0
+
+SQLAlchemy ORM
+
+JWT (Autenticación)
+
+BeautifulSoup + Requests (Scraping)
+
+Google Gemini AI
+
+Frontend
+
+React + TypeScript
+
+Vite
+
+Axios
+
+TailwindCSS
+
+Zustand (estado global)
+
+🛠️ 3. Instalación y Configuración
+📥 3.1 Clonar el Repositorio
 git clone https://github.com/maykolaracayo22/scraping_noticias.git
 cd scraping_noticias
 
-🗄️ 2. Configuración de la Base de Datos (MySQL)
-Crear base de datos manualmente:
-CREATE DATABASE news_aggregator_reddit;
+🔧 3.2 Backend – Instalación
+📌 Entrar a la carpeta backend
+cd backend
 
-O usar el script automático:
-cd backend_noticias
-python create_database.py
+📌 Crear entorno virtual
+python -m venv venv
+source venv/bin/activate   # Linux
+venv\Scripts\activate      # Windows
 
-🔧 3. Configuración del Backend (FastAPI)
-Navegar al backend:
-cd backend_noticias
-
-Instalar dependencias:
+📌 Instalar dependencias
 pip install -r requirements.txt
 
-Crear archivo .env:
-# Base de Datos MySQL
+🔑 3.3 Configurar Variables de Entorno
+
+Crea un archivo .env dentro de /backend:
+
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=news_aggregator_reddit
-DB_USER=tu_usuario_mysql
-DB_PASSWORD=tu_password_mysql
+DB_USER=root
+DB_PASSWORD=tu_password
+DB_NAME=scrapingdb
 
-# Google AI (Gemini)
-GOOGLE_AI_API_KEY=TU_API_KEY_AQUI
-
-# JWT
-SECRET_KEY=tu_clave_secreta_muy_segura
+SECRET_KEY=tu_clave_secreta
 ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
 
-Ejecutar el backend
-python main.py
+GEMINI_API_KEY=TU_API_KEY
+
+🗄️ 3.4 Configurar Base de Datos MySQL
+CREATE DATABASE scrapingdb;
+
+CREATE USER 'scraping_user'@'%' IDENTIFIED BY 'password123';
+GRANT ALL PRIVILEGES ON scrapingdb.* TO 'scraping_user';
+FLUSH PRIVILEGES;
+
+▶️ 3.5 Ejecutar Backend
+uvicorn main:app --reload
 
 
-Backend disponible en:
+La API estará en:
+
 👉 http://localhost:8000
 
-👉 Documentación API: http://localhost:8000/docs
+👉 Documentación Swagger: http://localhost:8000/docs
 
-🎨 4. Configuración del Frontend (React + TypeScript)
-Navegar al frontend:
-cd frontend_noticias
+🎨 3.6 Frontend – Instalación
+📌 Entrar a la carpeta
+cd frontend
 
-Instalar dependencias:
+📌 Instalar dependencias
 npm install
 
-Ejecutar frontend:
+📌 Ejecutar en modo desarrollo
 npm run dev
 
 
-Frontend disponible en:
+Frontend en:
 👉 http://localhost:5173
 
-👤 5. Credenciales de Acceso
-Administrador (por defecto):
-Email: admin@newsperu.com  
-Password: 123456
-
-Usuarios Free:
-
-Se registran desde el sistema
-
-Obtienen automáticamente el plan Free
-
-Pueden actualizar a Plus mediante Yape
-
-🔑 6. Configuración Opcional – Google Gemini AI
-
-Para activar el análisis de noticias con IA:
-
-Obtener tu API Key desde Google AI Studio
-
-Añadirla en el archivo .env:
-
-GOOGLE_AI_API_KEY=TU_API_KEY_AQUI
-
-📁 Estructura del Proyecto
+📁 4. Estructura del Proyecto
 scraping_noticias/
-├── backend_noticias/          # FastAPI Backend
-│   ├── app/
-│   │   ├── models.py          # Modelos de la BD
-│   │   ├── main.py            # Aplicación principal
-│   │   ├── crud.py            # Operaciones de BD
-│   │   └── scraper.py         # Lógica de scraping
+│
+├── backend/
+│   ├── main.py
+│   ├── routers/
+│   ├── models/
+│   ├── schemas/
+│   ├── services/
+│   ├── scraping/
+│   ├── database.py
 │   ├── requirements.txt
 │   └── .env
 │
-├── frontend_noticias/         # React Frontend
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── types/
-│   │   └── api/
-│   └── package.json
-│
-└── README.md
+└── frontend/
+    ├── src/
+    ├── public/
+    ├── package.json
+    └── vite.config.ts
 
-🎯 Funcionalidades por Plan
-🆓 Plan Free
+🔐 5. Funcionalidades del Sistema
+👤 Modo Usuario
 
-Lectura de todas las noticias
+Registro e inicio de sesión con JWT
 
-Scraping básico
+Panel personal de noticias
 
-Búsqueda y filtros
-
-Reportar noticias
-
-Registro con correo
-
-⭐ Plan Plus (S/ 19.90 mensual)
-
-Incluye todo lo del Free y además:
+Scraping manual
 
 Análisis de noticias con IA
 
-ChatBot inteligente
+Exportación de datos a Excel
 
-Exportación avanzada a Excel
+ChatBot integrado
 
-Scraping avanzado
+🛡️ Modo Administrador
 
-Más velocidad y más fuentes
+Ver lista de usuarios
 
-🐛 Solución de Problemas Comunes
-❌ Error de conexión a MySQL
+Cambiar roles
 
-Verifica que MySQL está corriendo
+Ver scraping ejecutado por usuarios
 
-Confirma usuario y contraseña en .env
+Gestionar noticias globales
 
-Asegura que la BD news_aggregator_reddit existe
+Monitoreo de planes (Free / Plus)
 
-❌ Puerto en uso
+🧠 Funciones de IA
 
-Cambiar puerto backend (main.py):
+Clasificación automática de noticias
 
-uvicorn.run(app, host="0.0.0.0", port=8001)
+Resúmenes automáticos
 
+Detección de sentimiento
 
-Cambiar puerto frontend (vite.config.ts):
+ChatBot con contexto
 
-server: { port: 5174 }
+📡 6. Endpoints Principales (Backend)
+👤 Autenticación
+POST /auth/register
+POST /auth/login
 
-❌ Error de dependencias
-pip install -r requirements.txt --force-reinstall
+🔍 Scraping
+POST /scraping/run       # Ejecuta scraping manual
+GET  /scraping/history   # Historial del usuario
 
-rm -rf node_modules package-lock.json
-npm install
+🧠 Inteligencia Artificial
+POST /ai/analyze          # Analiza noticia con IA
+POST /ai/summarize        # Genera resumen
+POST /ai/chat             # ChatBot
 
-🚀 Comandos Rápidos de Despliegue
-Terminal 1 — Backend
-cd backend_noticias
-python main.py
+📰 Noticias
+GET   /news/
+GET   /news/{id}
+DELETE /news/{id}
 
-Terminal 2 — Frontend
-cd frontend_noticias
-npm run dev
+🛡️ Admin
+GET /admin/users
+PUT /admin/users/{id}/role
 
+🧪 7. Scripts de Scraping
+Ejecutar scraping automático
+python scraping/cron_scraper.py
 
-Sistema activo en:
-👉 http://localhost:5173
- 🎉
+Ejecutar scraping manual (modo desarrollo)
+python scraping/scrape_rpp.py
 
-📞 Soporte
+🧾 8. Exportación a Excel
 
-Si encuentras problemas:
+El usuario puede exportar toda su data:
 
-Verifica prerrequisitos
+Por categoría
 
-Confirma que backend y frontend están activos
+Por fecha
 
-Revisa el archivo .env
+Por portal
 
-Revisa logs de consola
+Por palabras clave
 
-🏁 Estado del Proyecto
+El backend envía archivo .xlsx.
 
-✔ Proyecto funcional
-✔ Scraping operativo
-✔ Sistema de usuarios completo
-✔ IA integrada
-✔ Listo para producción y demostracione
+🔒 9. Sistema de Planes
+Plan	Límite	Funciones
+Free	20 noticias por día	Scraping manual, exportación
+Plus	Ilimitado	IA, scraping avanzado, chatbot
+💼 10. Idea de Negocio (Business Model)
+
+Tu proyecto es un SaaS de monitoreo y análisis inteligente de noticias, enfocado en:
+
+🟦 Tipo de negocio:
+
+Plataforma de análisis informativo (News Intelligence Platform)
+
+🎯 Cliente objetivo:
+
+Periodistas
+
+Empresas de marketing
+
+Politólogos
+
+Universidades
+
+Agencias de noticias
+
+Analistas digitales
+
+💰 Fuentes de ingresos:
+
+Suscripción mensual (Free → Plus)
+
+Plan empresarial
+
+API de datos
+
+Servicios de análisis avanzado con IA
+
+📄 11. Licencia
+
+MIT License.
+
+🙌 12. Autor
+
+Milton Edward Humpiri Flores
+UPeU – 2025
